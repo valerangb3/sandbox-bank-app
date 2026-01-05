@@ -3,15 +3,20 @@ package com.example.sandboxbankapp.core.ui.components
 import android.graphics.Color as AndroidColor
 import androidx.compose.ui.graphics.Color
 import android.graphics.drawable.PaintDrawable
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,6 +31,7 @@ import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation.Companion
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.sandboxbankapp.R
@@ -38,7 +44,7 @@ private enum class FieldState {
     COMMON, ERROR, SUCCESS
 }
 
-private fun getIconInfo(fieldState: InputFieldState): Pair<Int, String?> {
+/*private fun getIconInfo(fieldState: InputFieldState): Pair<Int, String?> {
     @DrawableRes var iconRes: Int
     var contentDescription: String? = null
     when (fieldState) {
@@ -56,114 +62,226 @@ private fun getIconInfo(fieldState: InputFieldState): Pair<Int, String?> {
         }
     }
     return Pair(iconRes, contentDescription)
+}*/
+
+@Composable
+private fun PasswordField(
+    text: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    state: InputFieldState = InputFieldState.Common,
+    leadingIcon: @Composable (() -> Unit)? = null,
+    label: @Composable (() -> Unit)? = null,
+) {
+    var isVisible by remember { mutableStateOf(false) }
+
+    val trailingIcon: @Composable (() -> Unit)? = remember(state, isVisible) {
+        val drawableRes = when (state) {
+            is InputFieldState.Success -> R.drawable.ic_field_success
+            is InputFieldState.Common -> {
+                if (isVisible) {
+                    R.drawable.ic_password_danger
+                } else {
+                    R.drawable.ic_password_save
+                }
+            }
+            is InputFieldState.Error -> R.drawable.ic_field_error
+        }
+        {
+            IconButton(
+                onClick = { isVisible = !isVisible }
+            ) {
+                Icon(
+                    painter = painterResource(drawableRes),
+                    contentDescription = null,
+                    tint = Color.Unspecified
+                )
+            }
+        }
+    }
+
+    OutlinedTextField(
+        modifier = modifier,
+        value = text,
+        onValueChange = onValueChange,
+        leadingIcon = leadingIcon,
+        trailingIcon = trailingIcon,
+        label = label,
+        visualTransformation = if (isVisible) VisualTransformation.None else PasswordVisualTransformation(),
+        isError = state is InputFieldState.Error,
+        supportingText = if (state is InputFieldState.Error) {
+            {
+                Text(state.errorText)
+            }
+        } else null,
+        colors = fieldColor(state = state)
+    )
+}
+
+@Composable
+private fun EmailField(
+    text: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    state: InputFieldState = InputFieldState.Common,
+    leadingIcon: @Composable (() -> Unit)? = null,
+    label: @Composable (() -> Unit)? = null,
+) {
+    //TODO на примере PasswordField пофиксить стабильность для данного поля
+    val trailingIcon: @Composable (() -> Unit)? = when(state) {
+        is InputFieldState.Error -> {
+            {
+                Image(
+                    painter = painterResource(R.drawable.ic_field_error),
+                    contentDescription = null
+                )
+            }
+        }
+        is InputFieldState.Success -> {
+            {
+                Image(
+                    painter = painterResource(R.drawable.ic_field_success),
+                    contentDescription = null
+                )
+            }
+        }
+        is InputFieldState.Common -> null
+    }
+    OutlinedTextField(
+        modifier = modifier,
+        value = text,
+        onValueChange = onValueChange,
+        leadingIcon = leadingIcon,
+        trailingIcon = trailingIcon,
+        label = label,
+        isError = state is InputFieldState.Error,
+        supportingText = if (state is InputFieldState.Error) {
+            {
+                Text(state.errorText)
+            }
+        } else null,
+        colors = fieldColor(state = state)
+    )
+}
+
+@Composable
+private fun TextField(
+    text: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    state: InputFieldState = InputFieldState.Common,
+    leadingIcon: @Composable (() -> Unit)? = null,
+    label: @Composable (() -> Unit)? = null,
+) {
+    val trailingIcon: @Composable (() -> Unit)? = when(state) {
+        is InputFieldState.Error -> {
+            {
+                Image(
+                    painter = painterResource(R.drawable.ic_field_error),
+                    contentDescription = null
+                )
+            }
+        }
+        is InputFieldState.Success -> {
+            {
+                Image(
+                    painter = painterResource(R.drawable.ic_field_success),
+                    contentDescription = null
+                )
+            }
+        }
+        is InputFieldState.Common -> null
+    }
+    OutlinedTextField(
+        modifier = modifier,
+        value = text,
+        onValueChange = onValueChange,
+        leadingIcon = leadingIcon,
+        trailingIcon = trailingIcon,
+        label = label,
+        isError = state is InputFieldState.Error,
+        supportingText = if (state is InputFieldState.Error) {
+            {
+                Text(state.errorText)
+            }
+        } else null,
+        colors = fieldColor(state = state)
+    )
+}
+
+
+@Composable
+private fun fieldColor(state: InputFieldState): TextFieldColors {
+    if (state is InputFieldState.Success) return OutlinedTextFieldDefaults.colors(
+        focusedBorderColor = Color(Green.value),
+        unfocusedBorderColor = Color(Green.value)
+    )
+    return OutlinedTextFieldDefaults.colors()
 }
 
 @Composable
 fun InputField(
-    value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     fieldType: FieldType = FieldType.TEXT,
     state: InputFieldState = InputFieldState.Common,
     leadingIcon: @Composable (() -> Unit)? = null,
-    label: @Composable (() -> Unit)? = null
+    label: @Composable (() -> Unit)? = null,
+    formState: FormState
 ) {
-    var fieldState1 by remember { mutableStateOf(InputFieldState.Common) }
-    var colors = OutlinedTextFieldDefaults.colors()
-
-    val fieldState = when (state) {
-        is InputFieldState.Common -> FieldState.COMMON
-        is InputFieldState.Error -> FieldState.ERROR
-        is InputFieldState.Success -> {
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(Green.value),
-                unfocusedBorderColor = Color(Green.value)
-            )
-            FieldState.SUCCESS
-        }
+    when (fieldType) {
+        FieldType.TEXT -> TextField(
+            text = formState.passwordField,
+            onValueChange = onValueChange,
+            modifier = modifier,
+            state = state,
+            leadingIcon = leadingIcon,
+            label = label
+        )
+        FieldType.PASSWORD -> PasswordField(
+            text = formState.passwordField,
+            onValueChange = onValueChange,
+            modifier = modifier,
+            state = state,
+            leadingIcon = leadingIcon,
+            label = label
+        )
+        FieldType.EMAIL -> EmailField(
+            text = formState.passwordField,
+            onValueChange = onValueChange,
+            modifier = modifier,
+            state = state,
+            leadingIcon = leadingIcon,
+            label = label
+        )
     }
-
-    val supportingText: (@Composable (() -> Unit))? = if (fieldState == FieldState.ERROR) {
-        {
-            val errorText = (state as InputFieldState.Error).text
-            Text(errorText)
-        }
-    } else null
-
-    val (iconRes, contentDescription) = getIconInfo(fieldState1)
-    val trailingIcon: (@Composable (() -> Unit))? = when (fieldType) {
-        //TODO Email
-        FieldType.PASSWORD -> {
-            {
-                Image(
-                    painter = painterResource(iconRes),
-                    contentDescription = contentDescription
-                )
-            }
-        }
-        FieldType.EMAIL -> {
-            when (state) {
-                is InputFieldState.Success -> {
-                    {
-                        Image(
-                            painter = painterResource(R.drawable.ic_field_success),
-                            contentDescription = null
-                        )
-                    }
-                }
-
-                is InputFieldState.Error -> {
-                    {
-                        Image(
-                            painter = painterResource(R.drawable.ic_field_error),
-                            contentDescription = null
-                        )
-                    }
-                }
-
-                else -> { null }
-            }
-        }
-        FieldType.TEXT -> null
-    }
-
-    val visualTransformation = when (fieldType) {
-        FieldType.TEXT, FieldType.EMAIL -> VisualTransformation.None
-        FieldType.PASSWORD -> PasswordVisualTransformation()
-    }
-
-    OutlinedTextField(
-        modifier = modifier,
-        value = value,
-        onValueChange = onValueChange,
-        leadingIcon = leadingIcon,
-        trailingIcon = trailingIcon,
-        label = label,
-        visualTransformation = visualTransformation,
-        isError = fieldState == FieldState.ERROR,
-        supportingText = supportingText,
-        colors = colors
-    )
 }
 
+data class FormState(
+    val passwordField: String = ""
+)
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun InputFieldPreview() {
-    var text by remember { mutableStateOf("vgb3@gmail.com") }
+    val errorText = "Опаньки, ошибка вышла"
+    var fieldState by remember { mutableStateOf<InputFieldState>(InputFieldState.Common) }
+    var formState by remember { mutableStateOf(FormState("qwerty")) }
+    val fieldType = FieldType.PASSWORD
     Column(
         modifier = Modifier
             .padding(top = 48.dp, start = 16.dp, end = 16.dp)
             .fillMaxWidth(),
     ) {
-        val errorText = "Опаньки, ошибка вышла"
         InputField(
+            formState = formState,
             modifier = Modifier.fillMaxWidth(),
-            value = text,
-            fieldType = FieldType.EMAIL,
-            state = InputFieldState.Success,
-            onValueChange = { text = it },
-            label = { Text("Введите e-mail") },
+            fieldType = fieldType,
+            state = fieldState,
+            onValueChange = {
+                formState = formState.copy(passwordField = it)
+            },
+            label = { Text("Введите пароль") },
         )
     }
 }

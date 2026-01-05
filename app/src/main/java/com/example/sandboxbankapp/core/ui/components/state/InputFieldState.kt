@@ -6,10 +6,12 @@ enum class FieldType {
     PASSWORD
 }
 
+
+// этот state чисто для input'a
 sealed interface InputFieldState {
     object Common : InputFieldState
     object Success : InputFieldState
-    class Error(val text: String) : InputFieldState
+    class Error(val errorText: String) : InputFieldState
 }
 
 /* TODO скорее всего подлежит удалению
