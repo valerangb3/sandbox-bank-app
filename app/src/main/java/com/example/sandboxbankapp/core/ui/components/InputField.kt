@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.Color
 import android.graphics.drawable.PaintDrawable
 import android.util.Log
 import androidx.annotation.DrawableRes
+import androidx.annotation.Nullable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -44,25 +45,25 @@ private enum class FieldState {
     COMMON, ERROR, SUCCESS
 }
 
-/*private fun getIconInfo(fieldState: InputFieldState): Pair<Int, String?> {
-    @DrawableRes var iconRes: Int
-    var contentDescription: String? = null
-    when (fieldState) {
-        is InputFieldState.Common -> {
-            iconRes = R.drawable.ic_password_danger
-        }
-
-        is InputFieldState.Error -> {
-            iconRes = R.drawable.ic_field_error
-            contentDescription = fieldState.text
-        }
-
-        is InputFieldState.Success -> {
-            iconRes = R.drawable.ic_field_success
-        }
+@Nullable
+@DrawableRes
+private fun getDrawableIconField(
+    state: InputFieldState,
+    isPasswordField: Boolean = false,
+    isVisible: Boolean = false
+) = when (state) {
+    is InputFieldState.Success -> R.drawable.ic_field_success
+    is InputFieldState.Common -> {
+        if (isPasswordField) {
+            if (isVisible) {
+                R.drawable.ic_password_danger
+            } else {
+                R.drawable.ic_password_save
+            }
+        } else null
     }
-    return Pair(iconRes, contentDescription)
-}*/
+    is InputFieldState.Error -> R.drawable.ic_field_error
+}
 
 @Composable
 private fun PasswordField(
@@ -75,27 +76,24 @@ private fun PasswordField(
 ) {
     var isVisible by remember { mutableStateOf(false) }
 
+    val drawableRes = getDrawableIconField(
+        state = state,
+        isPasswordField = true,
+        isVisible = isVisible
+    )
+
     val trailingIcon: @Composable (() -> Unit)? = remember(state, isVisible) {
-        val drawableRes = when (state) {
-            is InputFieldState.Success -> R.drawable.ic_field_success
-            is InputFieldState.Common -> {
-                if (isVisible) {
-                    R.drawable.ic_password_danger
-                } else {
-                    R.drawable.ic_password_save
+        drawableRes?.let { resId ->
+            {
+                IconButton(
+                    onClick = { isVisible = !isVisible }
+                ) {
+                    Icon(
+                        painter = painterResource(resId),
+                        contentDescription = null,
+                        tint = Color.Unspecified
+                    )
                 }
-            }
-            is InputFieldState.Error -> R.drawable.ic_field_error
-        }
-        {
-            IconButton(
-                onClick = { isVisible = !isVisible }
-            ) {
-                Icon(
-                    painter = painterResource(drawableRes),
-                    contentDescription = null,
-                    tint = Color.Unspecified
-                )
             }
         }
     }
@@ -127,26 +125,18 @@ private fun EmailField(
     leadingIcon: @Composable (() -> Unit)? = null,
     label: @Composable (() -> Unit)? = null,
 ) {
-    //TODO на примере PasswordField пофиксить стабильность для данного поля
-    val trailingIcon: @Composable (() -> Unit)? = when(state) {
-        is InputFieldState.Error -> {
-            {
-                Image(
-                    painter = painterResource(R.drawable.ic_field_error),
-                    contentDescription = null
-                )
-            }
+    val drawableRes = getDrawableIconField(state)
+
+    val trailingIcon: @Composable (() -> Unit)? = drawableRes?.let { res ->
+        {
+            Icon(
+                painter = painterResource(res),
+                contentDescription = null,
+                tint = Color.Unspecified
+            )
         }
-        is InputFieldState.Success -> {
-            {
-                Image(
-                    painter = painterResource(R.drawable.ic_field_success),
-                    contentDescription = null
-                )
-            }
-        }
-        is InputFieldState.Common -> null
     }
+
     OutlinedTextField(
         modifier = modifier,
         value = text,
@@ -173,24 +163,16 @@ private fun TextField(
     leadingIcon: @Composable (() -> Unit)? = null,
     label: @Composable (() -> Unit)? = null,
 ) {
-    val trailingIcon: @Composable (() -> Unit)? = when(state) {
-        is InputFieldState.Error -> {
-            {
-                Image(
-                    painter = painterResource(R.drawable.ic_field_error),
-                    contentDescription = null
-                )
-            }
+    val drawableRes = getDrawableIconField(state)
+
+    val trailingIcon: @Composable (() -> Unit)? = drawableRes?.let { res ->
+        {
+            Icon(
+                painter = painterResource(res),
+                contentDescription = null,
+                tint = Color.Unspecified
+            )
         }
-        is InputFieldState.Success -> {
-            {
-                Image(
-                    painter = painterResource(R.drawable.ic_field_success),
-                    contentDescription = null
-                )
-            }
-        }
-        is InputFieldState.Common -> null
     }
     OutlinedTextField(
         modifier = modifier,
@@ -265,9 +247,9 @@ data class FormState(
 @Composable
 private fun InputFieldPreview() {
     val errorText = "Опаньки, ошибка вышла"
-    var fieldState by remember { mutableStateOf<InputFieldState>(InputFieldState.Common) }
+    var fieldState by remember { mutableStateOf<InputFieldState>(InputFieldState.Error(errorText)) }
     var formState by remember { mutableStateOf(FormState("qwerty")) }
-    val fieldType = FieldType.PASSWORD
+    val fieldType = FieldType.EMAIL
     Column(
         modifier = Modifier
             .padding(top = 48.dp, start = 16.dp, end = 16.dp)
@@ -281,7 +263,7 @@ private fun InputFieldPreview() {
             onValueChange = {
                 formState = formState.copy(passwordField = it)
             },
-            label = { Text("Введите пароль") },
+            label = { Text("Введите email") },
         )
     }
 }
