@@ -69,12 +69,13 @@ private fun getDrawableIconField(
 @Composable
 private fun PasswordField(
     text: String,
+    labelText: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     state: InputFieldState = InputFieldState.Common,
     leadingIcon: @Composable (() -> Unit)? = null,
-    label: @Composable (() -> Unit)? = null,
 ) {
+    // TODO isVisible должно прийти извне параметром, так что продолжение следует...
     var isVisible by remember { mutableStateOf(false) }
 
     val drawableRes = getDrawableIconField(
@@ -105,7 +106,9 @@ private fun PasswordField(
         onValueChange = onValueChange,
         leadingIcon = leadingIcon,
         trailingIcon = trailingIcon,
-        label = label,
+        label = {
+            Text(labelText)
+        },
         visualTransformation = if (isVisible) VisualTransformation.None else PasswordVisualTransformation(),
         isError = state is InputFieldState.Error,
         supportingText = if (state is InputFieldState.Error) {
@@ -120,11 +123,11 @@ private fun PasswordField(
 @Composable
 private fun EmailField(
     text: String,
+    labelText: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     state: InputFieldState = InputFieldState.Common,
     leadingIcon: @Composable (() -> Unit)? = null,
-    label: @Composable (() -> Unit)? = null,
 ) {
     val drawableRes = getDrawableIconField(state)
 
@@ -146,7 +149,9 @@ private fun EmailField(
         onValueChange = onValueChange,
         leadingIcon = leadingIcon,
         trailingIcon = trailingIcon,
-        label = label,
+        label = {
+            Text(labelText)
+        },
         isError = state is InputFieldState.Error,
         supportingText = if (state is InputFieldState.Error) {
             {
@@ -160,11 +165,11 @@ private fun EmailField(
 @Composable
 private fun TextField(
     text: String,
+    labelText: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     state: InputFieldState = InputFieldState.Common,
     leadingIcon: @Composable (() -> Unit)? = null,
-    label: @Composable (() -> Unit)? = null,
 ) {
     val drawableRes = getDrawableIconField(state)
 
@@ -185,7 +190,9 @@ private fun TextField(
         onValueChange = onValueChange,
         leadingIcon = leadingIcon,
         trailingIcon = trailingIcon,
-        label = label,
+        label = {
+            Text(labelText)
+        },
         isError = state is InputFieldState.Error,
         supportingText = if (state is InputFieldState.Error) {
             {
@@ -208,13 +215,14 @@ private fun fieldColor(state: InputFieldState): TextFieldColors {
 
 @Composable
 fun InputField(
+    text: String,
+    labelText: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     fieldType: FieldType = FieldType.TEXT,
     state: InputFieldState = InputFieldState.Common,
     leadingIcon: @Composable (() -> Unit)? = null,
-    label: @Composable (() -> Unit)? = null,
-    text: String
+    label: @Composable (() -> Unit)? = null
 ) {
     when (fieldType) {
         FieldType.TEXT -> TextField(
@@ -223,7 +231,7 @@ fun InputField(
             modifier = modifier,
             state = state,
             leadingIcon = leadingIcon,
-            label = label
+            labelText = labelText
         )
 
         FieldType.PASSWORD -> PasswordField(
@@ -232,7 +240,7 @@ fun InputField(
             modifier = modifier,
             state = state,
             leadingIcon = leadingIcon,
-            label = label
+            labelText = labelText
         )
 
         FieldType.EMAIL -> EmailField(
@@ -241,7 +249,7 @@ fun InputField(
             modifier = modifier,
             state = state,
             leadingIcon = leadingIcon,
-            label = label
+            labelText = labelText
         )
     }
 }
@@ -254,9 +262,9 @@ data class FormState(
 @Composable
 private fun InputFieldPreview() {
     val errorText = "Опаньки, ошибка вышла"
-    var fieldState by remember { mutableStateOf<InputFieldState>(InputFieldState.Error(errorText)) }
+    var fieldState by remember { mutableStateOf<InputFieldState>(InputFieldState.Common) }
     var formState by remember { mutableStateOf(FormState("qwerty")) }
-    val fieldType = FieldType.EMAIL
+    val fieldType = FieldType.PASSWORD
     Column(
         modifier = Modifier
             .padding(top = 48.dp, start = 16.dp, end = 16.dp)
@@ -270,7 +278,7 @@ private fun InputFieldPreview() {
             onValueChange = {
                 formState = formState.copy(passwordField = it)
             },
-            label = { Text("Введите email") },
+            labelText = "Введите email",
         )
     }
 }

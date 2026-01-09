@@ -22,6 +22,8 @@ class MainActivity : ComponentActivity() {
             SandboxBankAppTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     AuthorizationScreen(
+                        modifier = Modifier
+                            .padding(innerPadding),
                         onRegisterMove = {},
                         onAuthorize = {}
                     )

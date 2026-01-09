@@ -3,12 +3,15 @@ package com.example.sandboxbankapp.authorize.presentation.ui
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,6 +30,7 @@ import com.example.sandboxbankapp.core.ui.components.state.FieldType
 import com.example.sandboxbankapp.core.ui.components.state.InputFieldState
 import com.example.sandboxbankapp.ui.theme.Outline
 import org.koin.androidx.compose.koinViewModel
+import com.example.sandboxbankapp.authorize.presentation.state.FieldType.Password
 
 @Composable
 private fun AuthorizationForm(
@@ -39,14 +43,30 @@ private fun AuthorizationForm(
     moveToNextStep: () -> Unit,
     onRegisterMove: () -> Unit,
 
+    modifier: Modifier,
 ) {
     val formState by authorizeViewModel.uiState.collectAsStateWithLifecycle()
 
     // var formState by remember { mutableStateOf(FormState("vgb3@gmail.com")) }
-    var fieldState by remember { mutableStateOf<InputFieldState>(InputFieldState.Error("Error")) }
+    val emailFieldState = remember(formState.emailState.errorText) {
+        formState.emailState.errorText?.let { error ->
+            InputFieldState.Error(error)
+        } ?: InputFieldState.Common
+        // mutableStateOf<InputFieldState>(InputFieldState.Error("Что-то пошло не так"))
+    }
+
+    val passwordFieldState = remember(
+        formState.passwordState.errorText,
+        (formState.passwordState.fieldType as Password).isVisible
+    ) {
+        val passwordField = formState.passwordState.fieldType as Password
+        formState.emailState.errorText?.let { error ->
+            InputFieldState.Error(error)
+        } ?: InputFieldState.Common
+    }
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .padding(top = 160.dp, start = 16.dp, end = 16.dp)
             .fillMaxWidth()
     ) {
@@ -58,24 +78,38 @@ private fun AuthorizationForm(
 
         Spacer(modifier = Modifier.height(80.dp))
 
+        /*
+        TODO для тестов
+        var text by remember { mutableStateOf("") }
+
+        OutlinedTextField(
+            label = {
+                Text("Input email")
+            },
+            value = text,
+            onValueChange = {text = it}
+        )
+
+         */
+
         InputField(
             text = formState.emailState.text,
             modifier = Modifier.fillMaxWidth(),
             fieldType = FieldType.EMAIL,
-            state = fieldState,
+            state = emailFieldState,
             onValueChange = onLoginInput,
-            label = { Text("Введите e-mail") },
+            labelText = "Введите e-mail",
         )
 
         Spacer(modifier = Modifier.height(24.dp))
-
+        val fieldState by mutableStateOf<InputFieldState>(InputFieldState.Error("Что-то пошло не так"))
         InputField(
             text = formState.passwordState.text,
             modifier = Modifier.fillMaxWidth(),
             fieldType = FieldType.PASSWORD,
             state = fieldState,
             onValueChange = onPasswordInput,
-            label = { Text("Введите пароль") },
+            labelText = "Введите пароль",
         )
 
         Spacer(modifier = Modifier.height(80.dp))
@@ -131,26 +165,35 @@ private fun AuthorizationForm(
 fun AuthorizationScreen(
     onAuthorize: () -> Unit,
     onRegisterMove: () -> Unit,
+    modifier: Modifier = Modifier,
     authorizeViewModel: AuthorizeViewModel = koinViewModel(),
 ) {
 
-    AuthorizationForm(
-        authorizeViewModel = authorizeViewModel,
+    Surface(
+        modifier = modifier
+            .fillMaxSize(),
+        color = MaterialTheme.colorScheme.surfaceContainer
+    ) {
+        AuthorizationForm(
+            modifier = Modifier,
 
-        onLoginInput = { email ->
-            authorizeViewModel
-                .reduce(
-                    action = AuthorizeAction.EmailInput(
-                        text = email
+            authorizeViewModel = authorizeViewModel,
+
+            onLoginInput = { email ->
+                authorizeViewModel
+                    .reduce(
+                        action = AuthorizeAction.EmailInput(
+                            text = email
+                        )
                     )
-                )
-        },
-        onPasswordInput = {},
-        onAuthorize = onAuthorize,
+            },
+            onPasswordInput = {},
+            onAuthorize = onAuthorize,
 
-        moveToNextStep = {},
-        onRegisterMove = onRegisterMove
+            moveToNextStep = {},
+            onRegisterMove = onRegisterMove
 
-    )
+        )
+    }
 }
 
