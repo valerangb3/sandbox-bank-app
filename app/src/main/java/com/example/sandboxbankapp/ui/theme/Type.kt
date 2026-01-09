@@ -29,6 +29,11 @@ val Typography = Typography(
         fontSize = 12.sp,
         lineHeight = 14.sp,
         letterSpacing = 0.4.sp
+    ),
+    headlineMedium = TextStyle(
+        fontFamily = robotoFamily,
+        fontSize = 28.sp,
+        lineHeight = 36.sp,
     )
     /* Other default text styles to override
     titleLarge = TextStyle(

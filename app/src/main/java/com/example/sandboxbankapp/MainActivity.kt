@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.sandboxbankapp.authorize.presentation.ui.AuthorizationScreen
 import com.example.sandboxbankapp.ui.theme.SandboxBankAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -20,10 +21,14 @@ class MainActivity : ComponentActivity() {
         setContent {
             SandboxBankAppTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
+                    AuthorizationScreen(
+                        onRegisterMove = {},
+                        onAuthorize = {}
+                    )
+                    /*Greeting(
                         name = "Android",
                         modifier = Modifier.padding(innerPadding)
-                    )
+                    )*/
                 }
             }
         }
@@ -42,6 +47,10 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 @Composable
 fun GreetingPreview() {
     SandboxBankAppTheme {
-        Greeting("Android")
+        // Greeting("Android")
+        AuthorizationScreen(
+            onRegisterMove = {},
+            onAuthorize = {}
+        )
     }
 }

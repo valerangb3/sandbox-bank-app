@@ -62,6 +62,7 @@ private fun getDrawableIconField(
             }
         } else null
     }
+
     is InputFieldState.Error -> R.drawable.ic_field_error
 }
 
@@ -127,13 +128,15 @@ private fun EmailField(
 ) {
     val drawableRes = getDrawableIconField(state)
 
-    val trailingIcon: @Composable (() -> Unit)? = drawableRes?.let { res ->
-        {
-            Icon(
-                painter = painterResource(res),
-                contentDescription = null,
-                tint = Color.Unspecified
-            )
+    val trailingIcon: @Composable (() -> Unit)? = remember(state) {
+        drawableRes?.let { res ->
+            {
+                Icon(
+                    painter = painterResource(res),
+                    contentDescription = null,
+                    tint = Color.Unspecified
+                )
+            }
         }
     }
 
@@ -165,13 +168,15 @@ private fun TextField(
 ) {
     val drawableRes = getDrawableIconField(state)
 
-    val trailingIcon: @Composable (() -> Unit)? = drawableRes?.let { res ->
-        {
-            Icon(
-                painter = painterResource(res),
-                contentDescription = null,
-                tint = Color.Unspecified
-            )
+    val trailingIcon: @Composable (() -> Unit)? = remember(state) {
+        drawableRes?.let { res ->
+            {
+                Icon(
+                    painter = painterResource(res),
+                    contentDescription = null,
+                    tint = Color.Unspecified
+                )
+            }
         }
     }
     OutlinedTextField(
@@ -209,27 +214,29 @@ fun InputField(
     state: InputFieldState = InputFieldState.Common,
     leadingIcon: @Composable (() -> Unit)? = null,
     label: @Composable (() -> Unit)? = null,
-    formState: FormState
+    text: String
 ) {
     when (fieldType) {
         FieldType.TEXT -> TextField(
-            text = formState.passwordField,
+            text = text,
             onValueChange = onValueChange,
             modifier = modifier,
             state = state,
             leadingIcon = leadingIcon,
             label = label
         )
+
         FieldType.PASSWORD -> PasswordField(
-            text = formState.passwordField,
+            text = text,
             onValueChange = onValueChange,
             modifier = modifier,
             state = state,
             leadingIcon = leadingIcon,
             label = label
         )
+
         FieldType.EMAIL -> EmailField(
-            text = formState.passwordField,
+            text = text,
             onValueChange = onValueChange,
             modifier = modifier,
             state = state,
@@ -256,7 +263,7 @@ private fun InputFieldPreview() {
             .fillMaxWidth(),
     ) {
         InputField(
-            formState = formState,
+            text = formState.passwordField,
             modifier = Modifier.fillMaxWidth(),
             fieldType = fieldType,
             state = fieldState,
@@ -266,4 +273,37 @@ private fun InputFieldPreview() {
             label = { Text("Введите email") },
         )
     }
+}
+
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun InputFieldTestPreview() {
+    var text by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .padding(top = 48.dp, start = 16.dp, end = 16.dp)
+            .fillMaxWidth(),
+    ) {
+        OutlinedTextField(
+            modifier = Modifier.fillMaxWidth(),
+            value = text,
+            onValueChange = { text = it },
+            leadingIcon = { },
+            trailingIcon = {
+                Icon(
+                    painter = painterResource(R.drawable.ic_field_error),
+                    contentDescription = null,
+                    tint = Color.Unspecified
+                )
+            },
+            label = { Text("Введите email") },
+            isError = true,
+            supportingText = {
+                Text("Опаньки возникла ошибка")
+            },
+        )
+    }
+
 }
