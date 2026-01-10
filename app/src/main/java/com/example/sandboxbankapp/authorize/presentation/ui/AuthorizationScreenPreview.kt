@@ -9,6 +9,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.sandboxbankapp.authorize.presentation.state.AuthorizeUiState
+import com.example.sandboxbankapp.authorize.presentation.state.FieldState
+import com.example.sandboxbankapp.authorize.presentation.state.FieldType
 import com.example.sandboxbankapp.ui.theme.SandboxBankAppTheme
 
 @Preview(showSystemUi = true, showBackground = true,
@@ -17,18 +20,33 @@ import com.example.sandboxbankapp.ui.theme.SandboxBankAppTheme
 @Composable
 private fun AuthorizationScreenPreview() {
     SandboxBankAppTheme(dynamicColor = false) {
-        Scaffold { innerPadding ->
-            Surface(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize(),
-                color = MaterialTheme.colorScheme.surfaceContainer
-            ) {
-                AuthorizationScreen(
-                    onAuthorize = {},
-                    onRegisterMove = {}
-                )
-            }
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        ) { innerPadding ->
+            val formState = AuthorizeUiState(
+                emailState = FieldState(
+                    fieldType = FieldType.Email,
+                    text = "vgb3@gmail.com",
+                    errorText = "Что-то пошло не так (email)"
+                ),
+                passwordState = FieldState(
+                    fieldType = FieldType.Password(isVisible = false),
+                    text = "foo-bar",
+                    // errorText = "Что-то пошло не так (password)"
+                ),
+                isAuthorizeButtonEnabled = true
+            )
+            AuthorizationForm(
+                modifier = Modifier.padding(innerPadding),
+                formState = formState,
+                onLoginInput = {},
+                onPasswordInput = {},
+                onShowPassword = {},
+                onAuthorize = {},
+                moveToNextStep = {},
+                onRegisterMove = {},
+            )
         }
     }
 }
@@ -40,17 +58,19 @@ private fun AuthorizationScreenPreview() {
 private fun AuthorizationScreenDarkPreview() {
     SandboxBankAppTheme(dynamicColor = false) {
         Scaffold { innerPadding ->
-            Surface(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize(),
-                color = MaterialTheme.colorScheme.surfaceContainer
-            ) {
-                AuthorizationScreen(
-                    onAuthorize = {},
-                    onRegisterMove = {}
-                )
-            }
+            val formState = AuthorizeUiState(
+                isAuthorizeButtonEnabled = true
+            )
+            AuthorizationForm(
+                modifier = Modifier.padding(innerPadding),
+                formState = formState,
+                onLoginInput = {},
+                onPasswordInput = {},
+                onShowPassword = {},
+                onAuthorize = {},
+                moveToNextStep = {},
+                onRegisterMove = {},
+            )
         }
     }
 }

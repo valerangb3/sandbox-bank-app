@@ -9,6 +9,7 @@ sealed interface FieldType {
 data class FieldState(
     val fieldType: FieldType,
     val text: String = "",
+    val isValid: Boolean = false,
     val errorText: String? = null,
 )
 

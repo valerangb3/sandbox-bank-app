@@ -70,25 +70,24 @@ private fun getDrawableIconField(
 private fun PasswordField(
     text: String,
     labelText: String,
-    onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     state: InputFieldState = InputFieldState.Common,
+    onValueChange: (String) -> Unit,
+    onTrailingClick: () -> Unit,
     leadingIcon: @Composable (() -> Unit)? = null,
+    showPassword: Boolean = false
 ) {
-    // TODO isVisible должно прийти извне параметром, так что продолжение следует...
-    var isVisible by remember { mutableStateOf(false) }
-
     val drawableRes = getDrawableIconField(
         state = state,
         isPasswordField = true,
-        isVisible = isVisible
+        isVisible = showPassword
     )
 
-    val trailingIcon: @Composable (() -> Unit)? = remember(state, isVisible) {
+    val trailingIcon: @Composable (() -> Unit)? = remember(state, showPassword) {
         drawableRes?.let { resId ->
             {
                 IconButton(
-                    onClick = { isVisible = !isVisible }
+                    onClick = onTrailingClick
                 ) {
                     Icon(
                         painter = painterResource(resId),
@@ -109,7 +108,7 @@ private fun PasswordField(
         label = {
             Text(labelText)
         },
-        visualTransformation = if (isVisible) VisualTransformation.None else PasswordVisualTransformation(),
+        visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
         isError = state is InputFieldState.Error,
         supportingText = if (state is InputFieldState.Error) {
             {
@@ -214,7 +213,7 @@ private fun fieldColor(state: InputFieldState): TextFieldColors {
 }
 
 @Composable
-fun InputField(
+fun  InputField(
     text: String,
     labelText: String,
     onValueChange: (String) -> Unit,
@@ -222,7 +221,8 @@ fun InputField(
     fieldType: FieldType = FieldType.TEXT,
     state: InputFieldState = InputFieldState.Common,
     leadingIcon: @Composable (() -> Unit)? = null,
-    label: @Composable (() -> Unit)? = null
+    onTrailingClick: (() -> Unit)? = null,
+    showPassword: Boolean = false,
 ) {
     when (fieldType) {
         FieldType.TEXT -> TextField(
@@ -240,7 +240,9 @@ fun InputField(
             modifier = modifier,
             state = state,
             leadingIcon = leadingIcon,
-            labelText = labelText
+            labelText = labelText,
+            onTrailingClick = onTrailingClick ?: {},
+            showPassword = showPassword,
         )
 
         FieldType.EMAIL -> EmailField(
@@ -279,6 +281,9 @@ private fun InputFieldPreview() {
                 formState = formState.copy(passwordField = it)
             },
             labelText = "Введите email",
+            onTrailingClick = {
+
+            }
         )
     }
 }

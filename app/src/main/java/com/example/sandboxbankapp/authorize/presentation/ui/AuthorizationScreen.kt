@@ -15,7 +15,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -23,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.sandboxbankapp.authorize.presentation.state.AuthorizeAction
+import com.example.sandboxbankapp.authorize.presentation.state.AuthorizeUiState
 import com.example.sandboxbankapp.authorize.presentation.viewmodel.AuthorizeViewModel
 import com.example.sandboxbankapp.core.ui.components.FormState
 import com.example.sandboxbankapp.core.ui.components.InputField
@@ -33,20 +33,45 @@ import org.koin.androidx.compose.koinViewModel
 import com.example.sandboxbankapp.authorize.presentation.state.FieldType.Password
 
 @Composable
-private fun AuthorizationForm(
+private fun AuthorizationContent(
     authorizeViewModel: AuthorizeViewModel,
 
     onLoginInput: (String) -> Unit,
     onPasswordInput: (String) -> Unit,
+    onShowPassword: () -> Unit,
     onAuthorize: () -> Unit,
 
     moveToNextStep: () -> Unit,
     onRegisterMove: () -> Unit,
 
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
 ) {
     val formState by authorizeViewModel.uiState.collectAsStateWithLifecycle()
 
+    AuthorizationForm(
+        modifier = modifier,
+        formState = formState,
+        onLoginInput = onLoginInput,
+        onPasswordInput = onPasswordInput,
+        onShowPassword = onShowPassword,
+        onAuthorize = onAuthorize,
+        moveToNextStep = moveToNextStep,
+        onRegisterMove = onRegisterMove,
+    )
+}
+
+@Composable
+fun AuthorizationForm(
+    formState: AuthorizeUiState,
+    onLoginInput: (String) -> Unit,
+    onPasswordInput: (String) -> Unit,
+    onShowPassword: () -> Unit,
+    onAuthorize: () -> Unit,
+    moveToNextStep: () -> Unit,
+    onRegisterMove: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val passwordField = formState.passwordState.fieldType as Password
     // var formState by remember { mutableStateOf(FormState("vgb3@gmail.com")) }
     val emailFieldState = remember(formState.emailState.errorText) {
         formState.emailState.errorText?.let { error ->
@@ -57,10 +82,10 @@ private fun AuthorizationForm(
 
     val passwordFieldState = remember(
         formState.passwordState.errorText,
-        (formState.passwordState.fieldType as Password).isVisible
+        passwordField.isVisible
     ) {
-        val passwordField = formState.passwordState.fieldType as Password
-        formState.emailState.errorText?.let { error ->
+        // val passwordField = formState.passwordState.fieldType as Password
+        formState.passwordState.errorText?.let { error ->
             InputFieldState.Error(error)
         } ?: InputFieldState.Common
     }
@@ -102,14 +127,16 @@ private fun AuthorizationForm(
         )
 
         Spacer(modifier = Modifier.height(24.dp))
-        val fieldState by mutableStateOf<InputFieldState>(InputFieldState.Error("Что-то пошло не так"))
+        // val fieldState by remember { mutableStateOf<InputFieldState>(InputFieldState.Error("Что-то пошло не так")) }
         InputField(
             text = formState.passwordState.text,
             modifier = Modifier.fillMaxWidth(),
             fieldType = FieldType.PASSWORD,
-            state = fieldState,
+            state = passwordFieldState,
             onValueChange = onPasswordInput,
             labelText = "Введите пароль",
+            onTrailingClick = onShowPassword,
+            showPassword = passwordField.isVisible
         )
 
         Spacer(modifier = Modifier.height(80.dp))
@@ -168,32 +195,34 @@ fun AuthorizationScreen(
     modifier: Modifier = Modifier,
     authorizeViewModel: AuthorizeViewModel = koinViewModel(),
 ) {
-
-    Surface(
-        modifier = modifier
-            .fillMaxSize(),
-        color = MaterialTheme.colorScheme.surfaceContainer
-    ) {
-        AuthorizationForm(
-            modifier = Modifier,
-
-            authorizeViewModel = authorizeViewModel,
-
-            onLoginInput = { email ->
-                authorizeViewModel
-                    .reduce(
-                        action = AuthorizeAction.EmailInput(
-                            text = email
-                        )
+    AuthorizationContent(
+        modifier = modifier,
+        authorizeViewModel = authorizeViewModel,
+        onLoginInput = { email ->
+            authorizeViewModel
+                .reduce(
+                    action = AuthorizeAction.EmailInput(
+                        text = email
                     )
-            },
-            onPasswordInput = {},
-            onAuthorize = onAuthorize,
-
-            moveToNextStep = {},
-            onRegisterMove = onRegisterMove
-
-        )
-    }
+                )
+        },
+        onPasswordInput = { password ->
+            authorizeViewModel
+                .reduce(
+                    action = AuthorizeAction.PasswordInput(
+                        text = password
+                    )
+                )
+        },
+        onShowPassword = {
+            authorizeViewModel
+                .reduce(
+                    action = AuthorizeAction.TogglePasswordIcon
+                )
+        },
+        onAuthorize = onAuthorize,
+        moveToNextStep = {},
+        onRegisterMove = onRegisterMove
+    )
 }
 

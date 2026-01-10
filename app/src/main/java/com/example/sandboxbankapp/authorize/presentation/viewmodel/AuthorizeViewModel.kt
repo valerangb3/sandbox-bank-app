@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sandboxbankapp.authorize.presentation.state.AuthorizeAction
 import com.example.sandboxbankapp.authorize.presentation.state.AuthorizeUiState
+import com.example.sandboxbankapp.authorize.presentation.state.FieldType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,7 +28,25 @@ class AuthorizeViewModel : ViewModel(
                         )
                     }
                 }
-                is AuthorizeAction.PasswordInput -> {}
+                is AuthorizeAction.PasswordInput -> {
+                    _uiState.update { authorizeUiState ->
+                        authorizeUiState.copy(
+                            passwordState = authorizeUiState.passwordState.copy(text = action.text)
+                        )
+                    }
+                }
+                is AuthorizeAction.TogglePasswordIcon -> {
+                    _uiState.update { authorizeUiState ->
+                        val passwordField = authorizeUiState.passwordState.fieldType as FieldType.Password
+                        authorizeUiState.copy(
+                            passwordState = authorizeUiState.passwordState.copy(
+                                fieldType = FieldType.Password(
+                                    isVisible = !passwordField.isVisible
+                                )
+                            )
+                        )
+                    }
+                }
                 is AuthorizeAction.Authorize -> {
                     withContext(Dispatchers.IO) {
 
