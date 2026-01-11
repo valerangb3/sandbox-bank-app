@@ -30,6 +30,7 @@ import com.example.sandboxbankapp.authorize.presentation.viewmodel.AuthorizeView
 import com.example.sandboxbankapp.core.ui.components.FormState
 import com.example.sandboxbankapp.core.ui.components.InputField
 import com.example.sandboxbankapp.core.ui.components.state.FieldType
+import com.example.sandboxbankapp.authorize.presentation.state.FieldType as FieldTypeState
 import com.example.sandboxbankapp.core.ui.components.state.InputFieldState
 import com.example.sandboxbankapp.ui.theme.Outline
 import org.koin.androidx.compose.koinViewModel
@@ -64,7 +65,7 @@ private fun AuthorizationContent(
             moveToNextStep = moveToNextStep,
             onRegisterMove = onRegisterMove,
             onFocusChanged = { typeField ->
-                currentFocus = typeField
+                authorizeViewModel.reduce(AuthorizeAction.ValidateField(typeField))
             }
         )
     }
@@ -80,7 +81,7 @@ fun AuthorizationForm(
     moveToNextStep: () -> Unit,
     onRegisterMove: () -> Unit,
     modifier: Modifier = Modifier,
-    onFocusChanged: ((String) -> Unit)? = null,
+    onFocusChanged: ((FieldTypeState) -> Unit)? = null,
 ) {
     val passwordField = formState.passwordState.fieldType as Password
     var emailWasFocus by remember { mutableStateOf(false) }
@@ -130,7 +131,7 @@ fun AuthorizationForm(
                     if (focusState.isFocused) {
                         emailWasFocus = true
                     } else if (!focusState.isFocused && emailWasFocus) {
-                        onFocusChanged?.invoke("email")
+                        onFocusChanged?.invoke(FieldTypeState.Email)
                     }
                 },
             fieldType = FieldType.EMAIL,
@@ -147,7 +148,7 @@ fun AuthorizationForm(
                     if (focusState.isFocused) {
                         passwordWasFocus = true
                     } else if (!focusState.isFocused && passwordWasFocus) {
-                        onFocusChanged?.invoke("password")
+                        onFocusChanged?.invoke(Password(passwordField.isVisible))
                     }
                 },
             fieldType = FieldType.PASSWORD,
