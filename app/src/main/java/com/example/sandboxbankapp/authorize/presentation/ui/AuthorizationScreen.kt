@@ -1,5 +1,6 @@
 package com.example.sandboxbankapp.authorize.presentation.ui
 
+import android.util.Log
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -15,9 +16,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -47,17 +50,24 @@ private fun AuthorizationContent(
     modifier: Modifier = Modifier,
 ) {
     val formState by authorizeViewModel.uiState.collectAsStateWithLifecycle()
-
-    AuthorizationForm(
-        modifier = modifier,
-        formState = formState,
-        onLoginInput = onLoginInput,
-        onPasswordInput = onPasswordInput,
-        onShowPassword = onShowPassword,
-        onAuthorize = onAuthorize,
-        moveToNextStep = moveToNextStep,
-        onRegisterMove = onRegisterMove,
-    )
+    var currentFocus by remember { mutableStateOf("") }
+    Column {
+        Text(text = currentFocus)
+        Spacer(modifier = Modifier.height(24.dp))
+        AuthorizationForm(
+            modifier = modifier,
+            formState = formState,
+            onLoginInput = onLoginInput,
+            onPasswordInput = onPasswordInput,
+            onShowPassword = onShowPassword,
+            onAuthorize = onAuthorize,
+            moveToNextStep = moveToNextStep,
+            onRegisterMove = onRegisterMove,
+            onFocusChanged = { typeField ->
+                currentFocus = typeField
+            }
+        )
+    }
 }
 
 @Composable
@@ -70,24 +80,32 @@ fun AuthorizationForm(
     moveToNextStep: () -> Unit,
     onRegisterMove: () -> Unit,
     modifier: Modifier = Modifier,
+    onFocusChanged: ((String) -> Unit)? = null,
 ) {
     val passwordField = formState.passwordState.fieldType as Password
-    // var formState by remember { mutableStateOf(FormState("vgb3@gmail.com")) }
+    var emailWasFocus by remember { mutableStateOf(false) }
+    var passwordWasFocus by remember { mutableStateOf(false) }
     val emailFieldState = remember(formState.emailState.errorText) {
-        formState.emailState.errorText?.let { error ->
-            InputFieldState.Error(error)
-        } ?: InputFieldState.Common
-        // mutableStateOf<InputFieldState>(InputFieldState.Error("Что-то пошло не так"))
+        when {
+            formState.emailState.isValid -> InputFieldState.Success
+            formState.emailState.errorText != null -> {
+                InputFieldState.Error(formState.emailState.errorText)
+            }
+            else -> InputFieldState.Common
+        }
     }
 
     val passwordFieldState = remember(
         formState.passwordState.errorText,
         passwordField.isVisible
     ) {
-        // val passwordField = formState.passwordState.fieldType as Password
-        formState.passwordState.errorText?.let { error ->
-            InputFieldState.Error(error)
-        } ?: InputFieldState.Common
+        when {
+            formState.passwordState.isValid -> InputFieldState.Success
+            formState.passwordState.errorText != null -> {
+                InputFieldState.Error(formState.passwordState.errorText)
+            }
+            else -> InputFieldState.Common
+        }
     }
 
     Column(
@@ -103,34 +121,35 @@ fun AuthorizationForm(
 
         Spacer(modifier = Modifier.height(80.dp))
 
-        /*
-        TODO для тестов
-        var text by remember { mutableStateOf("") }
-
-        OutlinedTextField(
-            label = {
-                Text("Input email")
-            },
-            value = text,
-            onValueChange = {text = it}
-        )
-
-         */
-
         InputField(
             text = formState.emailState.text,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged { focusState ->
+                    // TODO focus with password field and move this logic to viewmodel
+                    if (focusState.isFocused) {
+                        emailWasFocus = true
+                    } else if (!focusState.isFocused && emailWasFocus) {
+                        onFocusChanged?.invoke("email")
+                    }
+                },
             fieldType = FieldType.EMAIL,
             state = emailFieldState,
             onValueChange = onLoginInput,
             labelText = "Введите e-mail",
         )
-
         Spacer(modifier = Modifier.height(24.dp))
-        // val fieldState by remember { mutableStateOf<InputFieldState>(InputFieldState.Error("Что-то пошло не так")) }
         InputField(
             text = formState.passwordState.text,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged { focusState ->
+                    if (focusState.isFocused) {
+                        passwordWasFocus = true
+                    } else if (!focusState.isFocused && passwordWasFocus) {
+                        onFocusChanged?.invoke("password")
+                    }
+                },
             fieldType = FieldType.PASSWORD,
             state = passwordFieldState,
             onValueChange = onPasswordInput,
@@ -158,9 +177,7 @@ fun AuthorizationForm(
                 color = MaterialTheme.colorScheme.onPrimary
             )
         }
-
         Spacer(modifier = Modifier.height(36.dp))
-
         Button(
             modifier = Modifier
                 .height(64.dp)

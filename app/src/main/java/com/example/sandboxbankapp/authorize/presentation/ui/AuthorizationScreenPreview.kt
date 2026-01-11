@@ -28,10 +28,11 @@ private fun AuthorizationScreenPreview() {
                 emailState = FieldState(
                     fieldType = FieldType.Email,
                     text = "vgb3@gmail.com",
-                    errorText = "Что-то пошло не так (email)"
+                    errorText = "Что-то пошло не так (email)",
+                    isValid = true
                 ),
                 passwordState = FieldState(
-                    fieldType = FieldType.Password(isVisible = false),
+                    fieldType = FieldType.Password(isVisible = true),
                     text = "foo-bar",
                     // errorText = "Что-то пошло не так (password)"
                 ),
@@ -59,6 +60,12 @@ private fun AuthorizationScreenDarkPreview() {
     SandboxBankAppTheme(dynamicColor = false) {
         Scaffold { innerPadding ->
             val formState = AuthorizeUiState(
+                passwordState = FieldState(
+                    fieldType = FieldType.Password(isVisible = false),
+                    text = "foo-bar",
+                    isValid = true
+                    // errorText = "Что-то пошло не так (password)"
+                ),
                 isAuthorizeButtonEnabled = true
             )
             AuthorizationForm(

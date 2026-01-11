@@ -213,7 +213,7 @@ private fun fieldColor(state: InputFieldState): TextFieldColors {
 }
 
 @Composable
-fun  InputField(
+fun InputField(
     text: String,
     labelText: String,
     onValueChange: (String) -> Unit,
